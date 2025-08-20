@@ -5,7 +5,7 @@ Lightweight AI-powered posture coach that works with your webcam.
 ### Tech
 - Frontend: React (Vite)
 - Backend: FastAPI (Python)
-- ML: MediaPipe Pose + heuristic classifier (no images stored)
+- ML: TensorFlow.js MoveNet + heuristic classifier (runs fully in-browser; no images stored)
 - Storage: SQLite (aggregate posture events only with explicit consent)
 
 ### Features (MVP)
@@ -53,21 +53,15 @@ App: `http://localhost:5173`
 
 ## API Overview
 
-- POST `/api/classify` (multipart/form-data with field `image`): returns posture classification
-  - Response: `{ label: "good" | "slouched" | "no_person" | "uncertain", confidence: number }`
-  - Query params: `store=true|false` to store aggregate label (requires user consent)
-
-- GET `/api/summary?period=daily|weekly`: percent upright for the selected period
-  - Response: `{ uprightRatio: number (0..1), totalEvents: number }`
-
-- GET `/api/consent`: `{ consent: boolean }`
-- POST `/api/consent` with JSON `{ consent: boolean }`
+- POST `/api/track` with JSON `{ label: 'good' | 'slouched', confidence?: number }`
+  - Stores an aggregate posture event only if user consent is enabled. Returns `{ stored: boolean }`.
+- GET `/api/summary?period=daily|weekly` → `{ uprightRatio: number (0..1), totalEvents: number }`
+- GET `/api/consent` → `{ consent: boolean }`
+- POST `/api/consent` with JSON `{ consent: boolean }` → `{ consent: boolean }`
 
 ---
 
 ## Notes
-- The classifier uses MediaPipe Pose landmarks and simple geometric heuristics around head/shoulder/hip alignment. It focuses on sitting contexts (remote workers, students, gamers).
-- The system fails safe: if confidence is low or person not detected, it returns `uncertain`/`no_person` and does not nudge.
+- Posture detection runs client-side using TensorFlow.js MoveNet. We apply geometric heuristics around head/shoulder/hip alignment. No frames leave the browser.
+- The system fails safe: if confidence is low or person not detected, UI shows `uncertain`/`no_person` and does not nudge or store events.
 
-# AD325_first_exercise
-Creating first repo, AD325
